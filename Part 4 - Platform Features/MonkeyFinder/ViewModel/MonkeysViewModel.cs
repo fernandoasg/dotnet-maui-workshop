@@ -6,12 +6,15 @@ public partial class MonkeysViewModel : BaseViewModel
 {
     public ObservableCollection<Monkey> Monkeys { get; } = new();
     MonkeyService monkeyService;
-    public MonkeysViewModel(MonkeyService monkeyService)
+    IGeolocation geolocation;
+
+    public MonkeysViewModel(MonkeyService monkeyService, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
         this.monkeyService = monkeyService;
+        this.geolocation = geolocation;
     }
-    
+
     [RelayCommand]
     async Task GoToDetails(Monkey monkey)
     {
@@ -52,5 +55,37 @@ public partial class MonkeysViewModel : BaseViewModel
             IsBusy = false;
         }
 
+    }
+
+    [RelayCommand]
+    async Task GetClosestMonkey()
+    {
+        if (IsBusy || Monkeys.Count == 0)
+            return;
+
+        try
+        {
+            // Get cached location, else get real location.
+            var location = await geolocation.GetLastKnownLocationAsync();
+            if (location == null)
+            {
+                location = await geolocation.GetLocationAsync(new GeolocationRequest
+                {
+                    DesiredAccuracy = GeolocationAccuracy.Medium,
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
+            }
+
+            // Find closest monkey to us
+            var first = Monkeys.OrderBy(m => location.CalculateDistance(
+                new Location(m.Latitude, m.Longitude), DistanceUnits.Miles))
+                .FirstOrDefault();
+
+            await Application.Current.MainPage.DisplayAlert("", first.Name + " " + first.Location, "OK");
+        } catch (Exception ex)
+        {
+            Debug.WriteLine($"Unable to query location: {ex.Message}");
+            await Application.Current.MainPage.DisplayAlert("Error!", ex.Message, "OK");
+        }
     }
 }
