@@ -6,7 +6,8 @@
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     Title="{Binding Monkey.Name}"
     x:DataType="viewmodel:MonkeyDetailsViewModel">
-    <ScrollView>
+    <ScrollView
+        Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
         <VerticalStackLayout>
          <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="160, Auto">
                 <BoxView
