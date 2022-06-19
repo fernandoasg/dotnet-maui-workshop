@@ -4,6 +4,9 @@ namespace MonkeyFinder.ViewModel;
 
 public partial class MonkeysViewModel : BaseViewModel
 {
+    [ObservableProperty]
+    bool isRefreshing;
+
     public ObservableCollection<Monkey> Monkeys { get; } = new();
     MonkeyService monkeyService;
     IConnectivity connectivity;
@@ -61,6 +64,7 @@ public partial class MonkeysViewModel : BaseViewModel
         finally
         {
             IsBusy = false;
+            IsRefreshing = false;
         }
 
     }
