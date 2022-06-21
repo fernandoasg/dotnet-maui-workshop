@@ -2,23 +2,55 @@
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
+    string translatedNumber;
 
-	public MainPage()
+    public MainPage()
 	{
 		InitializeComponent();
 	}
 
-	private void OnCounterClicked(object sender, EventArgs e)
-	{
-		count += 5;
+    private void OnTranslate(object sender, EventArgs e)
+    {
+        string enteredNumber = PhoneNumberText.Text;
+        translatedNumber = Core.PhonewordTranslator.ToNumber(enteredNumber);
 
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
+        if (!string.IsNullOrEmpty(translatedNumber))
+        {
+            CallButton.IsEnabled = true;
+            CallButton.Text = "Call " + translatedNumber;
+        }
+        else
+        {
+            CallButton.IsEnabled = false;
+            CallButton.Text = "Call";
+        }
+    }
 
-		SemanticScreenReader.Announce(CounterBtn.Text);
-	}
+    async void OnCall(object sender, System.EventArgs e)
+    {
+        if (await this.DisplayAlert(
+        "Dial a Number",
+        "Would you like to call " + translatedNumber + "?",
+        "Yes",
+        "No"))
+        {
+            try
+            {
+                PhoneDialer.Open(translatedNumber);
+            }
+            catch (ArgumentNullException)
+            {
+                await DisplayAlert("Unable to dial", "Phone number was not valid.", "OK");
+            }
+            catch (FeatureNotSupportedException)
+            {
+                await DisplayAlert("Unable to dial", "Phone dialing not supported.", "OK");
+            }
+            catch (Exception)
+            {
+                // Other error has occurred.
+                await DisplayAlert("Unable to dial", "Phone dialing failed.", "OK");
+            }
+        }
+    }
 }
-
